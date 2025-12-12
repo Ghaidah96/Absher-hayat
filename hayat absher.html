@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>أبشر حياة</title>
+<style>
+  :root{
+    --blue1:#05386B; --blue2:#1E90FF; --green:#28C28B; --card:#ffffff;
+    --bg:#f4fbff; --muted:#6b7c86;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family: "Segoe UI", Tahoma, Arial, sans-serif;background:var(--bg);color:#04293A;direction:rtl}
+  .container{max-width:1050px;margin:24px auto;padding:16px}
+  header{background:linear-gradient(135deg,var(--blue2),var(--green));color:#fff;padding:28px;border-radius:12px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  header h1{margin:0;font-size:28px}
+  header p{margin:4px 0 0;color:#eaf6ff}
+  .top-actions{margin-left:auto;display:flex;gap:8px}
+  .btn{padding:8px 12px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;font-weight:600}
+  .btn.primary{background:var(--blue1);color:#fff}
+  .btn.ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,0.18)}
+  main{margin-top:18px}
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
+  .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(2,48,70,0.06)}
+  h2{margin:0 0 10px}
+  .events{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .event{padding:14px;border-radius:10px;border:1px solid #e6f4ff;background:#f9ffff;display:flex;justify-content:space-between;align-items:center}
+  .event .title{font-weight:700}
+  .tag{background:var(--green);color:#fff;padding:6px 8px;border-radius:8px;font-size:12px;margin-left:8px}
+  .right-column .card{margin-bottom:12px}
+  .progress{height:14px;background:#e8f6ff;border-radius:10px;overflow:hidden}
+  .progress > .bar{height:100%;background:linear-gradient(90deg,var(--blue2),var(--green));width:0%}
+  .mini-steps{list-style:none;padding:0;margin:8px 0}
+  .mini-steps li{padding:8px 10px;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;align-items:center}
+  .mini-steps li.done{color:#068a0f;font-weight:700}
+  .mini-steps li.current{color:var(--blue2);font-weight:700}
+  label{display:block;margin-bottom:6px;font-weight:600}
+  input[type=text], input[type=date]{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1 1 140px}
+  .small{font-size:13px;color:var(--muted)}
+  .status{display:inline-block;padding:6px 8px;border-radius:8px;background:#f0f6ff;border:1px solid #e1f0ff}
+  .status.pending{background:#fff6e6;border:1px solid #ffe9c9;color:#6b4b00}
+  .status.ready{background:#eef9f0;border:1px solid #dff4e6;color:#1b7a3a}
+  .status.submitted{background:#eef5ff;border:1px solid #dbeaff;color:#034488}
+  .status.completed{background:#e8fff0;border:1px solid #cfeedf;color:#028a0f}
+  .timeline{list-style:none;padding:0;margin:0}
+  .timeline li{position:relative;padding:14px 10px 14px 18px;border-left:3px solid #e6f4ff;margin-bottom:12px;background:#fff;border-radius:8px}
+  .timeline li .time{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .timeline li .event-title{font-weight:700}
+  .timeline li .event-desc{font-size:14px;color:#405a66}
+  .log{max-height:140px;overflow:auto;padding:8px;background:#fbfdff;border-radius:8px;border:1px solid #eef8ff;font-size:13px}
+  footer{margin-top:18px;text-align:center;color:#6b7c86;font-size:13px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr;}.events{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>أبشر حياة</h1>
+        <p>منصة توحّد إجراءات أحداث الحياة</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn primary" onclick="goHome()">الأحداث</button>
+        <button class="btn" onclick="openJourney()">مسار ولادة طفل</button>
+        <button class="btn" onclick="goTracking()">التتبُّع</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <!-- left -->
+        <div>
+          <section id="eventsSection" class="card">
+            <h2>أحداث الحياة</h2>
+            <p class="small">اختر حدثًا لبدء المسار</p>
+            <div class="events" id="eventsList"></div>
+          </section>
+
+          <section id="journeySection" class="card" style="display:none;margin-top:12px;">
+            <h2>مسار: <span id="journeyTitle">ولادة طفل</span></h2>
+            <p class="small">تابعي الخطوات، ارفعي المستندات، ثم أرسلي الخطوة للجهة.</p>
+
+            <div style="display:flex;gap:12px;align-items:center;margin-top:12px;">
+              <div style="flex:1">
+                <div class="progress"><div class="bar" id="mainProgress"></div></div>
+              </div>
+              <div style="min-width:120px;text-align:left">
+                <span id="progressText" class="small">0% مُنجز</span>
+              </div>
+            </div>
+
+            <ul class="mini-steps" id="stepsList" style="margin-top:12px"></ul>
+
+            <div style="margin-top:14px" class="card">
+              <h3>رفع مستند (محاكاة OCR)</h3>
+              <p class="small">ارفع صورة الهوية أو ملف المولود لاستخراج الاسم، رقم الهوية، وتاريخ الميلاد.</p>
+              <input type="file" id="fileInput" accept="image/*" />
+              <div id="preview" style="margin-top:10px"></div>
+
+              <div id="ocrForm" style="display:none;margin-top:10px">
+                <label>الاسم</label>
+                <input type="text" id="f_name" />
+                <label>رقم الهوية</label>
+                <input type="text" id="f_id" />
+                <label>تاريخ الميلاد</label>
+                <input type="date" id="f_dob" />
+                <div style="margin-top:8px">
+                  <button class="btn primary" onclick="confirmOCR()">تأكيد وملء الحقول</button>
+                  <button class="btn" onclick="clearOCR()">إلغاء</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px" class="card">
+              <h3>تكامل تجريبي مع الجهات</h3>
+              <p class="small">أرسلي خطوة تجريبًا إلى جهة: الأحوال — الجوازات — وزارة الصحة</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                <button class="btn" onclick="mockSubmit('الأحوال')">أرسل إلى الأحوال</button>
+                <button class="btn" onclick="mockSubmit('الجوازات')">أرسل إلى الجوازات</button>
+                <button class="btn" onclick="mockSubmit('وزارة الصحة')">أرسل إلى وزارة الصحة</button>
+              </div>
+              <div style="margin-top:8px">
+                <div class="small">سجل التفاعل:</div>
+                <div class="log" id="integrationLog"></div>
+              </div>
+            </div>
+
+          </section>
+
+          <section id="trackingSection" class="card" style="display:none;margin-top:12px;">
+            <h2>تتبُّع المسار</h2>
+            <p class="small">Timeline يوضح حالة كل خطوة.</p>
+            <ul class="timeline" id="timelineList"></ul>
+          </section>
+        </div>
+
+        <!-- right -->
+        <aside class="right-column">
+          <div class="card">
+            <h3>ملخص المسار</h3>
+            <div id="summaryBox">
+              <p class="small">اختر حدثًا لعرض الملخص.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Workflow Manager</h3>
+            <p class="small">غيّري حالة أي خطوة لمحاكاة التقدّم</p>
+            <div id="workflowControls"></div>
+          </div>
+
+          <div class="card">
+            <h3>معلومات عن OCR</h3>
+            <p class="small">المحاكاة تعبّر عن سلوك OCR الحقيقي؛ يمكن ربط Tesseract أو Google Vision لاحقًا.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      © فريق أبشر حياة — هاكاثون أبشر طويق
+    </footer>
+  </div>
+
+<script>
+const EVENTS = [
+  { key:'birth', title:'ولادة طفل', popular:true,
+    steps: [
+      {key:'reg_birth', title:'تسجيل المولود', status:'pending', eta:'1 يوم'},
+      {key:'birth_cert', title:'إصدار شهادة الميلاد', status:'pending', eta:'2 يوم'},
+      {key:'add_dependent', title:'إضافة تابع', status:'pending', eta:'3 يوم'},
+      {key:'passport', title:'إصدار جواز', status:'pending', eta:'7 يوم'},
+      {key:'insurance', title:'التأمين الطبي', status:'pending', eta:'1 يوم'},
+      {key:'vaccination', title:'حجز تطعيمات', status:'pending', eta:'متاح فوراً'}
+    ]
+  },
+  { key:'lost_id', title:'فقدان بطاقة', popular:false, steps:[
+    {key:'report_loss', title:'تبليغ عن فقدان', status:'pending'},
+    {key:'block_id', title:'إيقاف البطاقة', status:'pending'},
+    {key:'request_reissue', title:'طلب إصدار بديل', status:'pending'}]},
+  { key:'buy_car', title:'شراء مركبة', popular:true, steps:[
+    {key:'transfer', title:'نقل ملكية', status:'pending'},
+    {key:'inspection', title:'الفحص الدوري', status:'pending'},
+    {key:'insurance_car', title:'إصدار تأمين', status:'pending'}]},
+  { key:'move_home', title:'الانتقال لمسكن', popular:false, steps:[
+    {key:'update_address', title:'تحديث العنوان', status:'pending'},
+    {key:'update_school', title:'تحديث المدرسة', status:'pending'}]},
+  { key:'marriage', title:'الزواج', popular:false, steps:[
+    {key:'register_marriage', title:'توثيق عقد الزواج', status:'pending'},
+    {key:'update_status', title:'تحديث الحالة المدنية', status:'pending'}]},
+  { key:'retirement', title:'التقاعد', popular:false, steps:[
+    {key:'apply_pension', title:'طلب تقاعد', status:'pending'},
+    {key:'update_benefits', title:'تحديث المزايا', status:'pending'}]}
+];
+
+let currentJourney = null;
+
+function renderEvents(){
+  const el = document.getElementById('eventsList'); el.innerHTML='';
+  EVENTS.forEach(ev=>{
+    const div = document.createElement('div'); div.className='event';
+    const left = document.createElement('div');
+    const title = document.createElement('div'); title.className='title'; title.textContent = ev.title;
+    left.appendChild(title);
+    if(ev.popular){ const tag = document.createElement('span'); tag.className='tag'; tag.textContent='شائع'; left.appendChild(tag);}
+    const actions = document.createElement('div');
+    const btn = document.createElement('button'); btn.className='btn primary'; btn.textContent='ابدأ'; btn.onclick = ()=>startJourney(ev.key);
+    actions.appendChild(btn);
+    div.appendChild(actions);
+    div.insertBefore(left, actions);
+    el.appendChild(div);
+  });
+}
+
+function startJourney(key){
+  const ev = EVENTS.find(e=>e.key===key);
+  if(!ev) return;
+  currentJourney = JSON.parse(JSON.stringify(ev));
+  document.getElementById('journeyTitle').textContent = ev.title;
+  document.getElementById('eventsSection').style.display='none';
+  document.getElementById('journeySection').style.display='block';
+  document.getElementById('trackingSection').style.display='none';
+  renderSteps(); renderSummary(); renderWorkflowControls(); updateProgress();
+}
+
+function renderSteps(){
+  const ul = document.getElementById('stepsList'); ul.innerHTML='';
+  currentJourney.steps.forEach((s, idx)=>{
+    const li = document.createElement('li');
+    li.className = s.status==='completed'?'done': s.status==='current'?'current':'';
+    const left = document.createElement('div'); left.innerHTML = `<strong>${s.title}</strong><div class="small">${s.eta? s.eta : ''}</div>`;
+    const right = document.createElement('div');
+    const statusSpan = document.createElement('span'); statusSpan.className='status '+(s.status || '');
+    statusSpan.textContent = s.status.charAt(0).toUpperCase()+s.status.slice(1);
+    const uploadBtn = document.createElement('button'); uploadBtn.className='btn'; uploadBtn.textContent='رفع مستند';
+    uploadBtn.onclick = ()=>{ document.getElementById('fileInput').click(); scrollToElement('fileInput'); };
+    right.appendChild(statusSpan);
+    right.appendChild(document.createTextNode(' '));
+    right.appendChild(uploadBtn);
+    li.appendChild(right);
+    li.insertBefore(left, right);
+    ul.appendChild(li);
+  });
+}
+
+function renderSummary(){
+  const box = document.getElementById('summaryBox'); box.innerHTML='';
+  const title = document.createElement('div'); title.innerHTML=`<strong>${currentJourney.title}</strong>`;
+  const list = document.createElement('div'); list.className='small';
+  currentJourney.steps.slice(0,4).forEach(s=>{ const d = document.createElement('div'); d.textContent = '• '+s.title + ' — ' + s.status; list.appendChild(d);});
+  box.appendChild(title); box.appendChild(list);
+}
+
+function renderWorkflowControls(){
+  const wrap = document.getElementById('workflowControls'); wrap.innerHTML='';
+  currentJourney.steps.forEach((s, idx)=>{
+    const card = document.createElement('div'); card.style.marginBottom='8px';
+    const title = document.createElement('div'); title.innerHTML = `<strong>${s.title}</strong>`;
+    const controls = document.createElement('div'); controls.style.marginTop='6px';
+    ['pending','ready','submitted','completed'].forEach(st=>{
+      const b = document.createElement('button'); b.className='btn'; b.style.marginLeft='6px'; b.textContent = st;
+      b.onclick = ()=>{ setStepStatus(idx, st); };
+      controls.appendChild(b);
+    });
+    card.appendChild(title); card.appendChild(controls);
+    wrap.appendChild(card);
+  });
+}
+
+function setStepStatus(idx, status){
+  currentJourney.steps[idx].status = status;
+  if(status==='completed'){ for(let i=0;i<idx;i++) currentJourney.steps[i].status='completed'; }
+  currentJourney.steps.forEach(s=>{ if(s.status==='current') s.status='pending'; });
+  const next = currentJourney.steps.find(s=>s.status==='pending');
+  if(next && !currentJourney.steps.find(s=>s.status==='current')) next.status='current';
+  renderSteps(); renderSummary(); renderTimeline(); updateProgress();
+}
+
+function updateProgress(){
+  const total = currentJourney.steps.length;
+  const done = currentJourney.steps.filter(s=>s.status==='completed').length;
+  const pct = Math.round((done/total)*100);
+  document.getElementById('mainProgress').style.width = pct+'%';
+  document.getElementById('progressText').textContent = pct + '% مُنجز';
+}
+
+/* OCR simulation */
+const fileInput = document.getElementById('fileInput');
+fileInput.addEventListener('change', handleFile);
+
+function handleFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const preview = document.getElementById('preview'); preview.innerHTML='';
+  const img = document.createElement('img'); img.style.maxWidth='160px'; img.style.borderRadius='8px';
+  const reader = new FileReader();
+  reader.onload = function(ev){ img.src = ev.target.result; preview.appendChild(img); };
+  reader.readAsDataURL(file);
+  document.getElementById('ocrForm').style.display='none';
+  setTimeout(()=>{
+    const nameGuess = (file.name.split(/[\s._-]+/).filter(t=>isNaN(t)).join(' ') || 'اسم مثال');
+    const idGuess = (file.name.match(/\\d{7,10}/) || ['1234567890'])[0];
+    const year = 1990 + Math.floor(Math.random()*15);
+    const month = ('0'+(1+Math.floor(Math.random()*11))).slice(-2);
+    const day = ('0'+(1+Math.floor(Math.random()*27))).slice(-2);
+    document.getElementById('f_name').value = nameGuess;
+    document.getElementById('f_id').value = idGuess;
+    document.getElementById('f_dob').value = `${year}-${month}-${day}`;
+    document.getElementById('ocrForm').style.display='block';
+  }, 900);
+}
+
+function confirmOCR(){
+  const name = document.getElementById('f_name').value;
+  const id = document.getElementById('f_id').value;
+  const dob = document.getElementById('f_dob').value;
+  appendLog(`OCR: تمت قراءة البيانات — الاسم: ${name}, رقم: ${id}, تاريخ الميلاد: ${dob}`);
+  const idx = currentJourney.steps.findIndex(s=>s.status==='pending' || s.status==='current');
+  if(idx>=0){
+    currentJourney.steps[idx].status = 'ready';
+    renderSteps(); renderSummary(); renderWorkflowControls(); updateProgress(); renderTimeline();
+  }
+}
+
+function clearOCR(){ document.getElementById('ocrForm').style.display='none'; document.getElementById('preview').innerHTML=''; fileInput.value=''; }
+
+function mockSubmit(service){
+  const idx = currentJourney.steps.findIndex(s=>s.status==='ready' || s.status==='current');
+  if(idx<0){ appendLog('لا توجد خطوة جاهزة للإرسال.'); return; }
+  const step = currentJourney.steps[idx];
+  appendLog(`إرسال "${step.title}" إلى ${service}...`);
+  step.status = 'submitted'; renderSteps(); updateProgress(); renderWorkflowControls(); renderTimeline();
+  setTimeout(()=>{
+    const ok = Math.random() > 0.12;
+    if(ok){
+      step.status='completed';
+      appendLog(`تمت معالجة "${step.title}" بنجاح بواسطة ${service}.`);
+    } else {
+      step.status='pending';
+      appendLog(`رفض من ${service} — مطلوب مستند إضافي.`);
+    }
+    renderSteps(); updateProgress(); renderSummary(); renderWorkflowControls(); renderTimeline();
+  }, 1200 + Math.random()*1800);
+}
+
+function appendLog(text){
+  const el = document.getElementById('integrationLog');
+  const time = new Date().toLocaleTimeString();
+  const p = document.createElement('div'); p.textContent = `[${time}] ${text}`;
+  el.prepend(p);
+}
+
+function renderTimeline(){
+  const tl = document.getElementById('timelineList'); tl.innerHTML='';
+  currentJourney.steps.forEach((s, idx)=>{
+    const li = document.createElement('li');
+    const time = document.createElement('div'); time.className='time'; time.textContent = new Date().toLocaleString();
+    const title = document.createElement('div'); title.className='event-title'; title.textContent = s.title + ' — ' + s.status;
+    const desc = document.createElement('div'); desc.className='event-desc'; desc.textContent = 'الجهة: محاكاة — ETA: '+(s.eta||'غير محدد');
+    li.appendChild(time); li.appendChild(title); li.appendChild(desc);
+    tl.appendChild(li);
+  });
+}
+
+function goHome(){ document.getElementById('eventsSection').style.display='block'; document.getElementById('journeySection').style.display='none'; document.getElementById('trackingSection').style.display='none'; }
+function openJourney(){ startJourney('birth'); }
+function goTracking(){ document.getElementById('eventsSection').style.display='none'; document.getElementById('journeySection').style.display='none'; document.getElementById('trackingSection').style.display='block'; renderTimeline(); }
+function scrollToElement(id){ document.getElementById(id).scrollIntoView({behavior:'smooth',block:'center'}); }
+
+renderEvents();
+</script>
+</body>
+</html>
